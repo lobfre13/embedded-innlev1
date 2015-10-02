@@ -75,7 +75,7 @@ void MatrixMaster::setColoumn(int col, byte data) {
   }
 }
 
-void MatrixMaster::led(byte row, int col, bool on) {
+void MatrixMaster::led(int row, int col, bool on) {
   if (row < 0 || row > 7) return;
   if (col < 0 || col > 7) return;
   byte data = getColData(col);
@@ -102,7 +102,7 @@ void MatrixMaster::scrollText(String text, int slowdownFactor) {
       delay(slowdownFactor);
     }
   }
-  centerLastChar(tmp);
+  centerLastChar(tmp, slowdownFactor);
 }
 void MatrixMaster::writeCommand(byte registerr, byte data) {
   digitalWrite(latchPin, LOW);
@@ -153,12 +153,13 @@ int MatrixMaster::getIndexOfAscii(String *text, int charIndex) {
   return c - 65;
 }
 
-void MatrixMaster::centerLastChar(byte ch[]){
+void MatrixMaster::centerLastChar(byte ch[], int slowdownFactor){
   for (int k = 0; k < 2; k++) {
     for (int i = 0; i < 7; i++) {
       setRow(7 - i, ch[i]);
       ch[i] <<= 1;
     }
+    delay(slowdownFactor);
   }
 }
 

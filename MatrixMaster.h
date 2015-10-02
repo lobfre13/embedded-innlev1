@@ -25,7 +25,7 @@ class MatrixMaster {
     void setColoumn(int col, bool on);
     void setColoumn(int col, byte data);
 
-    void led(byte row, int col, bool on);
+    void led(int row, int col, bool on);
 
     void scrollText(String text, int slowdownFactor = 100);
     
@@ -36,5 +36,5 @@ class MatrixMaster {
     byte getColData(int col);
     void appendByte(byte *dest, byte src, int bitIndex);
     int getIndexOfAscii(String *text, int index);
-    void centerLastChar(byte ch[]);
+    void centerLastChar(byte ch[], int slowdownFactor);
 };
