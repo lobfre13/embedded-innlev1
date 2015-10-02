@@ -1,20 +1,16 @@
 #include "MatrixMaster.h"
 
-
+bool interrupt;
 int dataPin = 12;
 int latchPin = 10;
 int clockPin = 11;
+MatrixMaster mm = MatrixMaster(dataPin, clockPin, latchPin);
 
 void setup() {
-  MatrixMaster mm = MatrixMaster(dataPin, clockPin, latchPin);
-
-  //mm.setRow(5, true);
-  //mm.scrollText("FREDRIKI");
-  // mm.setColoumn(5, (byte)B11101111);
-//  mm.setBrightness(8);
 
 }
 
 void loop() {
+  mm.scrollText("lasdsaddasdsdol");
 
 }

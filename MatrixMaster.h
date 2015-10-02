@@ -7,9 +7,10 @@ class MatrixMaster {
     int latchPin;
     byte status[8];
     bool commonAnode;
+    int numOfParents;
     
    public:
-    MatrixMaster(int dataPin, int clockPin, int latchPin, bool commonAnode = true);
+    MatrixMaster(int dataPin, int clockPin, int latchPin, bool commonAnode = true, int numOfParents = 0);
 
     void displayTest(bool on);
     void decodeMode(bool on);
@@ -26,14 +27,14 @@ class MatrixMaster {
 
     void led(byte row, int col, bool on);
 
-    void scrollText(char text[]);
+    void scrollText(String text, int slowdownFactor = 100);
     
     private:
     void writeCommand(byte registerr, byte data);
-
-    byte reverseBitOrder(byte b);
-
+    byte reverseBitOrder(byte b, int bits = 8);
     void updateStatus(int row, byte data, bool on);
-
     byte getColData(int col);
+    void appendByte(byte *dest, byte src, int bitIndex);
+    int getIndexOfAscii(String *text, int index);
+    void centerLastChar(byte ch[]);
 };

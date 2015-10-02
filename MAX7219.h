@@ -1,4 +1,4 @@
-#define NO-OP   0
+#define NOOP   0
 #define DECODEMODE  9
 #define INTENSITY   10
 #define SCANLIMIT   11
