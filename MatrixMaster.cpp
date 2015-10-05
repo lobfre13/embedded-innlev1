@@ -8,6 +8,7 @@ MatrixMaster::MatrixMaster(int dataPin, int clockPin, int latchPin, bool commonA
   this->latchPin = latchPin;
   this->commonAnode = commonAnode;
   this->numOfParents = numOfParents;
+  this->mirror = false;
   pinMode(dataPin, OUTPUT);
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
@@ -49,30 +50,43 @@ void MatrixMaster::clear() {
   }
 }
 
+void MatrixMaster::setMirror(bool on){
+  this->mirror = on;
+}
+
+void MatrixMaster::showBrightnessBar(int brightness){
+  if (brightness < 1 || brightness > 15) return;
+  int leds = (brightness / 2)+1;
+  byte data = 0;
+  for(int i = 0; i < leds; i++){
+    data >>= 1;
+    data |= 128;
+  }
+  setRow(0, data);
+}
+
 void MatrixMaster::setRow(int row, bool on) {
   if (row < 0 || row > 7) return;
-  updateStatus(row, 255, on);
-  writeCommand(row + 1, status[row]);
+  if(commonAnode) writeCol(row, on ? 255 : 0);
+  else writeRow(row, on ? 255 : 0);
 }
 
 void MatrixMaster::setRow(int row, byte data) {
   if (row < 0 || row > 7) return;
-  if (commonAnode) data = reverseBitOrder(data);
-  status[row] = data;
-  writeCommand(row + 1, status[row]);
+  if(commonAnode) writeCol(row, data);
+  else writeRow(row, data);
 }
 
 void MatrixMaster::setColoumn(int col, bool on) {
   if (col < 0 || col > 7) return;
-  if (on) setColoumn(col, (byte)255);
-  else setColoumn(col, (byte)0);
+  if(commonAnode) writeRow(col, on ? 255 : 0);
+  else writeCol(col, on ? 255 : 0);
 }
 
 void MatrixMaster::setColoumn(int col, byte data) {
-  for (int i = 0; i < 8; i++) {
-    bool on = (byte)((byte)(data << i) >> 7) == 1;
-    led(i, col, on);
-  }
+  if(col < 0 || col > 7) return;
+  if(commonAnode) writeRow(col, data);
+  else writeCol(col, data);
 }
 
 void MatrixMaster::led(int row, int col, bool on) {
@@ -90,7 +104,7 @@ void MatrixMaster::scrollText(String text, int slowdownFactor) {
   int index = getIndexOfAscii(&text, 0);
   byte tmp[7];
   memcpy(tmp, ascii[index], 7);
-  for (int i = 0; i < 7; i++) tmp[i] >>= 2; //first char 2 leds left
+  for (int i = 0; i < 7; i++) tmp[i] >>= 2; //init 2 places from left
 
   for (int j = 1; j < text.length(); j++) {
     int next = getIndexOfAscii(&text, j);
@@ -114,6 +128,18 @@ void MatrixMaster::writeCommand(byte registerr, byte data) {
   digitalWrite(latchPin, HIGH);
 }
 
+void MatrixMaster::writeRow(int row, byte data){
+  status[row] = data;
+  writeCommand(row + 1, status[row]);
+}
+
+void MatrixMaster::writeCol(int col, byte data){
+  for (int i = 0; i < 8; i++) {
+    bool on = !!((byte)(data << i) >> 7);
+    led(i, col, on);
+  }
+}
+
 byte MatrixMaster::reverseBitOrder(byte b, int bits) {
   byte tmp = 0x00;
   for (int i = 0; i < bits; i++) {
@@ -129,7 +155,7 @@ void MatrixMaster::updateStatus(int row, byte data, bool on) {
 
 byte MatrixMaster::getColData(int col) {
   byte data = B10000000 >> col;
-  if (commonAnode) data = reverseBitOrder(data);
+  if (mirror) data = reverseBitOrder(data);
   return data;
 }
 
@@ -150,6 +176,8 @@ int MatrixMaster::getIndexOfAscii(String *text, int charIndex) {
     if (c2 == 134) return 26; //Æ
   }
   if (c == ' ') return 29; //space
+  if(c > 47 && c < 58) return c - 18; //Numbers 0-9
+  if(c == 167) return 40;
   return c - 65;
 }
 

@@ -7,10 +7,11 @@ class MatrixMaster {
     int latchPin;
     byte status[8];
     bool commonAnode;
+    bool mirror;
     int numOfParents;
     
    public:
-    MatrixMaster(int dataPin, int clockPin, int latchPin, bool commonAnode = true, int numOfParents = 0);
+    MatrixMaster(int dataPin, int clockPin, int latchPin, bool commonAnode = false, int numOfParents = 0);
 
     void displayTest(bool on);
     void decodeMode(bool on);
@@ -18,6 +19,8 @@ class MatrixMaster {
     void setBrightness(int brightness);
     void isShutdown(bool status);
     void clear();
+    void setMirror(bool on);
+    void showBrightnessBar(int brightness);
 
     void setRow(int row, bool on);
     void setRow(int row, byte data);
@@ -31,6 +34,8 @@ class MatrixMaster {
     
     private:
     void writeCommand(byte registerr, byte data);
+    void writeRow(int row, byte data);
+    void writeCol(int col, byte data);
     byte reverseBitOrder(byte b, int bits = 8);
     void updateStatus(int row, byte data, bool on);
     byte getColData(int col);

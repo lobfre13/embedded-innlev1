@@ -1,46 +1,36 @@
 #include "MatrixMaster.h"
+#include "BrightnessAdjuster.h"
+#include "DHT.h"
+#define DHTTYPE DHT11
 
-volatile int brightness = 8;
-volatile byte brightnessBar = B11110000;
-volatile unsigned long lastInterruptTime = 0;
-int lowerBrightnessPin = 2;
-int upBrightnessPin = 3;
+int dhtPin = 8;
 int dataPin = 12;
 int latchPin = 10;
 int clockPin = 11;
-MatrixMaster mm = MatrixMaster(dataPin, clockPin, latchPin, false);
+int aSpeedPin = 1;
+int togglePin = 7;
+int upBrightnessPin = 3;
+int downBrightnessPin = 2;
+MatrixMaster mm = MatrixMaster(dataPin, clockPin, latchPin);
+DHT dht(dhtPin, DHTTYPE);
 
 void setup() {
-  pinMode(lowerBrightnessPin, INPUT);
-  pinMode(upBrightnessPin, INPUT);
-  digitalWrite(lowerBrightnessPin, HIGH);
-  digitalWrite(upBrightnessPin, HIGH);
-  attachInterrupt(digitalPinToInterrupt(lowerBrightnessPin), lowerBrightness, FALLING);
-  attachInterrupt(digitalPinToInterrupt(upBrightnessPin), upBrightness, FALLING);
-  mm.setBrightness(brightness);
+  pinMode(togglePin, INPUT);
+  digitalWrite(togglePin, HIGH);
+  mm.setBrightness(7);
+  startBrightnessInterrupt(upBrightnessPin, downBrightnessPin, 7, &mm);
+  dht.begin();
 }
 
 void loop() {
- // mm.setRow(0, true);
-  mm.scrollText("arduino");
+  int speed = analogRead(aSpeedPin)/ 3 + 20;
+  if (digitalRead(togglePin) == HIGH) {
+    mm.scrollText("arduino", speed);
+  }
+  else {
+    int temp = dht.readTemperature();
+    mm.scrollText((String)temp + (char)167 + "C", speed);
+  }
+  delay(1000);
   mm.clear();
-}
-
-void lowerBrightness(){
-  if(millis() - lastInterruptTime < 300) return; 
-  if(brightness <= 1) return;
-  mm.setBrightness(--brightness);
-  brightnessBar <<=1;
-  mm.setRow(0, (byte)brightnessBar);
-  lastInterruptTime = millis();
-}
-
-void upBrightness(){
-  if(millis() - lastInterruptTime < 300) return; 
-  if(brightness >= 15) return;
-  mm.setBrightness(++brightness);
-  brightnessBar >>=1;
-  brightnessBar |= 128;
-  mm.setRow(0, (byte)brightnessBar);
-  lastInterruptTime = millis();
 }
